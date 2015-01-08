@@ -1,4 +1,4 @@
-organization  := "com.byteforscher"
+organization  := "com.octojon"
 
 version       := "0.1"
 

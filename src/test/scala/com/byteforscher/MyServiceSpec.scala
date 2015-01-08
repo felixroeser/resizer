@@ -1,4 +1,4 @@
-package com.byteforscher
+package com.octojon
 
 import org.specs2.mutable.Specification
 import spray.testkit.Specs2RouteTest
