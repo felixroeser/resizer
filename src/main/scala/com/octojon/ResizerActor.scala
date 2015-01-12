@@ -21,7 +21,7 @@ case class ResizerResponse(success: Boolean, error: Option[String])
 
 class ResizerActor extends Actor {
 
-  implicit val timeout: Timeout = Timeout(30.seconds)
+  implicit val timeout: Timeout = Timeout(60.seconds)
   implicit val system = context.system
 
   def receive = {

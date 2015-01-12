@@ -35,7 +35,9 @@ trait ResizerAPI extends HttpService { this: ResizerAPIActor =>
   implicit def executionContext = actorRefFactory.dispatcher
   implicit val timeout: Timeout = Timeout(30.seconds)
   implicit val system = context.system
-  lazy val resizerActor = system.actorOf(Props[ResizerActor].withRouter(RoundRobinPool(nrOfInstances = 3)))
+  lazy val resizerActor = system.actorOf(Props[ResizerActor]
+    .withDispatcher("akka.actor.resizer-dispatcher")
+    .withRouter(RoundRobinPool(nrOfInstances = 3)))
 
   val resizerRoute = {
     get {
