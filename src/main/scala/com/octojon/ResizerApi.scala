@@ -59,7 +59,7 @@ trait ResizerAPI extends HttpService { this: ResizerAPIActor =>
   }
 
   def proxyResizedImage(rr: ResizeRequest)(ctx: RequestContext): Future[Unit] = {
-    if(!rr.dir.exists) { rr.dir.mkdir }
+    if(!rr.dir.exists) { rr.dir.mkdirs }
 
     if (rr.sizedImageFile.exists) {
       println(s"Cache HIT: $rr")
