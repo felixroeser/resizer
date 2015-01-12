@@ -22,7 +22,7 @@ an _on the fly_ image resizer build with [spray.io](http://spray.io)
 
 5. Start the application:
 
-        > re-start        
+        > re-start
         # with custom configuration
         > sbt run -Dconfig.file=example.conf
 
@@ -31,6 +31,10 @@ an _on the fly_ image resizer build with [spray.io](http://spray.io)
 7. Stop the application:
 
         > re-stop
+
+### Prod
+
+    sbt run -Dconfig.file=prod.conf
 
 ### Links
 
