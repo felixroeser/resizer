@@ -2,13 +2,28 @@ package com.octojon
 
 import com.typesafe.config._
 
+object Global {
+  lazy val config = loadConfig
+
+  private def loadConfig = {
+    try {
+      val configFileName = System.getenv("CONFIG")
+      ConfigFactory.parseFile(new java.io.File(configFileName))
+    } catch {
+      case npe: java.lang.NullPointerException => {
+        ConfigFactory.load()
+      }
+    }
+  }
+}
+
 object RealmMapper {
-  lazy val map = ConfigFactory.load().getConfig("realmMapper")
+  lazy val map = Global.config.getConfig("realmMapper")
   def get(r: String): String = { map.getString(r) }
 }
 
 object CacheDir {
-  lazy val cachePath = ConfigFactory.load().getString("cachePath")
+  lazy val cachePath = Global.config.getString("cachePath")
   def path: String = { cachePath }
 }
 

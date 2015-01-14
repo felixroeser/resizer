@@ -2,9 +2,15 @@ organization  := "com.octojon"
 
 version       := "0.1"
 
-scalaVersion  := "2.11.2"
+scalaVersion  := "2.11.4"
 
 scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
+
+fork in console := true
+fork in run := true
+
+assemblyJarName in assembly := "resizer.jar"
+test in assembly := {}
 
 libraryDependencies ++= {
   val akkaV = "2.3.6"
