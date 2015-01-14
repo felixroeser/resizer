@@ -1,15 +1,15 @@
 package com.octojon
 
-import java.io._
-import org.apache.commons.io.FileUtils
-
-import scala.concurrent.Future
-import scala.concurrent.duration._
 import akka.actor.{Actor, Props}
 import akka.pattern.ask
 import akka.routing._
 import akka.util.Timeout
 import akka.io.IO
+import com.typesafe.config._
+import java.io._
+import org.apache.commons.io.FileUtils
+import scala.concurrent.Future
+import scala.concurrent.duration._
 import spray.routing.{HttpService, RequestContext}
 import spray.routing.directives.CachingDirectives
 import spray.can.server.Stats
@@ -20,8 +20,6 @@ import StatusCodes._
 import MediaTypes._
 import CachingDirectives._
 import HttpMethods._
-
-import com.typesafe.config._
 
 import com.octojon._
 
@@ -49,7 +47,10 @@ trait ResizerAPI extends HttpService { this: ResizerAPIActor =>
       } ~
       path(Segment / "i" / Segment / Segment) { (realm, options, url) =>
         val rr = ResizeRequest(realm, options, url)
-        proxyResizedImage(rr)
+        rr.valid match {
+          case true => proxyResizedImage(rr)
+          case false => complete(BadRequest, "please provide valid _options_")
+        }
       }
     } ~
     delete {
@@ -70,17 +71,14 @@ trait ResizerAPI extends HttpService { this: ResizerAPIActor =>
       }
     } else {
       println(s"Cache MISS: $rr")
-      val future = resizerActor ? rr
-      future.map { response =>
-
-        println(response)
+      (resizerActor ? rr).map { response =>
         val forClient = response match {
-          case ResizerResponse(true, None) => getFromFile(rr.sizedImageFile)
+          case ResizerResponse(true, None) => respondWithMediaType(`image/jpeg`) { getFromFile(rr.sizedImageFile) }
           case ResizerResponse(false, Some(error)) => complete(InternalServerError, error)
           case _ => complete(BadRequest, "dont know what to do")
         }
 
-        respondWithMediaType(`image/jpeg`) { forClient }.apply(ctx)
+        forClient.apply(ctx)
       }
     }
   }

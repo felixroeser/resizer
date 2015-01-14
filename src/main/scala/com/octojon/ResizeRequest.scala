@@ -12,10 +12,15 @@ case class ResizeRequest(realm: String, rawOptions: String, url: String) {
   lazy val originalFile = new File(dirName + "/original")
 
   val sizedImageName = digester.digest( rawOptions.getBytes("UTF-8") ).map("%02x".format(_)).mkString
-  lazy val sizedImageFile = new File(dirName + "/" + sizedImageName)
+  lazy val sizedImagePath = dirName + "/" + sizedImageName
+  lazy val sizedImageFile = new File(sizedImagePath)
 
   lazy val expandedUrl = realmTemplate.replace(" ", "").replace("{{url}}", url)
   lazy val options = ParsedOptions(rawOptions)
+
+  def valid = {
+    options.contains("fit") || options.contains("resize")
+  }
 }
 
 object Regexs {

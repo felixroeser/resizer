@@ -26,15 +26,25 @@ class ResizerActor extends Actor {
 
   def receive = {
     case rr: ResizeRequest => {
-      println(s"ResizerActor got $rr")
-      ensureOriginal(rr)
-      resizeImage(rr)
-      sender ! ResizerResponse(true, None)
-      //sender ! ResizerResponse(false, Some("bad stuff happens sometimes"))*/
+      println(s"ResizerActor received $rr")
+      sender ! processResizeRequest(rr)
     }
   }
 
-  def ensureOriginal(rr: ResizeRequest): Boolean = {
+  private def processResizeRequest(rr: ResizeRequest): ResizerResponse = {
+    try {
+      ensureOriginal(rr)
+      resizeImage(rr)
+      ResizerResponse(true, None)
+    } catch {
+      case e: Throwable => {
+        println(e)
+        ResizerResponse(false, Some("bad stuff happens sometimes"))
+      }
+    }
+  }
+
+  private def ensureOriginal(rr: ResizeRequest): Boolean = {
     if (rr.originalFile.exists) {
       println(s"Original HIT: $rr ${rr.dirName}")
     } else {
@@ -51,24 +61,22 @@ class ResizerActor extends Actor {
     true
   }
 
-  def resizeImage(rr: ResizeRequest) = {
+  private def resizeImage(rr: ResizeRequest) = {
     val inStream = new java.io.FileInputStream(rr.originalFile)
     var baseImage = com.sksamuel.scrimage.Image(inStream)
     val options = rr.options
 
     if (options.contains("fit")) {
-      println(s"Fitting to ${options.get("fit").get}")
-      val d = options.get("fit").get
-      baseImage = baseImage.fit(d.head, d.apply(1), rr.options.fillColor )
+      val d = options.get("fit").get.map { List(_, 3).max } // 3x3 is the min size
+      println(s"Fitting to ${d}")
+      baseImage = baseImage.fit(d.head, d.apply(1), options.fillColor )
     } else if (options.contains("resize")) {
-      val d = options.get("resize").get.head
-      println(s"Resing to $d")
-      baseImage = baseImage.fit(d, d, rr.options.fillColor).autocrop(rr.options.fillColor)
-    } else {
-      // TODO fail - must provide fit or resize
+      val d = List(options.get("resize").get.head, 3).max
+      println(s"Resizing to $d")
+      baseImage = baseImage.fit(d, d, options.fillColor).autocrop(options.fillColor)
     }
 
-    println(s"Saving to ${{rr.sizedImageName}}")
+    println(s"Saving to ${{rr.sizedImagePath}}")
     baseImage
       .writer(com.sksamuel.scrimage.Format.JPEG)
       .withCompression( rr.options.map.getOrElse("quality", List(75)).head )
