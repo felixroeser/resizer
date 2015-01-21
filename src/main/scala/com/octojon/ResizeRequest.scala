@@ -15,7 +15,8 @@ case class ResizeRequest(realm: String, rawOptions: String, url: String) {
   lazy val sizedImagePath = dirName + "/" + sizedImageName
   lazy val sizedImageFile = new File(sizedImagePath)
 
-  lazy val expandedUrl = realmTemplate.replace(" ", "").replace("{{url}}", url)
+  // FIXME too hacky
+  lazy val expandedUrl = realmTemplate.replace(" ", "").replace("{{url}}", url.replace(" ", "%20"))
   lazy val options = ParsedOptions(rawOptions)
 
   def valid = {
